@@ -1,0 +1,31 @@
+@import "../../node_modules/bootstrap/scss/bootstrap";
+
+@mixin text-regular {
+  font: {
+    family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+    size: 18px;
+  }
+  line-height: 32px;
+}
+
+body {
+  @include text-regular;
+
+  margin: {
+    top: 50px;
+    bottom: 100px;
+  }
+
+  #location-selector {
+    .btn {
+      margin: {
+        top: 10px;
+        right: 10px;
+      }
+    }
+  }
+
+  #response {
+    margin-top: 30px;
+  }
+}

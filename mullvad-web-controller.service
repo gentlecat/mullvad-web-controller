@@ -1,0 +1,14 @@
+[Unit]
+Description=Mullvad CLI Controller
+After=network.target
+
+[Service]
+DynamicUser=yes
+ExecStart=/usr/local/bin/mullvad-web-controller
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
