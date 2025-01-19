@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os/exec"
+	"time"
 )
 
 type Request struct {
@@ -54,6 +55,9 @@ func (h *RelayLocationChangeHandler) Handle(w http.ResponseWriter, r *http.Reque
 			return
 		}
 	}
+
+	// A bit of a delay for the network to sort itself out
+	time.Sleep(1 * time.Second)
 
 	ipInfo, err := GetCurrentIPDetails()
 	if err != nil {
