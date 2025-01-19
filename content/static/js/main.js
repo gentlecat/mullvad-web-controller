@@ -10,7 +10,7 @@ function initLocations(locationsContainer, locations) {
                 .split('')
                 .map(char => 0x1F1E6 + char.charCodeAt(0) - 65)
         );
-        button.textContent = `${flagEmoji} ${location.city.toUpperCase()}`;
+        button.textContent = `${flagEmoji} ${location.name}`;
 
         button.setAttribute('hx-post', '/api/relay/location');
         button.setAttribute('hx-ext', 'json-enc');
@@ -44,17 +44,17 @@ window.onload = function () {
     initLocations(
         document.getElementById('location-selector'),
         [
-            {country: "al", city: "tia"}, // Tirana, Albania
-            {country: "ca", city: "yvn"}, // Vancouver, Canada
-            {country: "ch", city: "zrh"}, // Zurich, Switzerland
-            {country: "de", city: "fra"}, // Frankfurt, Germany
-            {country: "jp", city: "tyo"}, // Tokyo, Japan
-            {country: "nl", city: "ams"}, // Amsterdam, Netherlands
-            {country: "se", city: "sth"}, // Stockholm, Sweden
-            {country: "sg", city: "sin"}, // Singapore
-            {country: "tr", city: "ist"}, // Istanbul, Turkey
-            {country: "us", city: "sea"}, // Seattle, USA
-            {country: "us", city: "sjc"}, // San Jose, USA
+            {country: "al", city: "tia", name: "Tirana"},
+            {country: "ca", city: "van", name: "Vancouver"},
+            {country: "ch", city: "zrh", name: "Zurich"},
+            {country: "de", city: "fra", name: "Frankfurt"},
+            {country: "jp", city: "tyo", name: "Tokyo"},
+            {country: "nl", city: "ams", name: "Amsterdam"},
+            {country: "se", city: "sth", name: "Stockholm"},
+            {country: "sg", city: "sin", name: "Singapore"},
+            {country: "tr", city: "ist", name: "Istanbul"},
+            {country: "us", city: "sea", name: "Seattle"},
+            {country: "us", city: "sjc", name: "San Jose"},
         ]
     );
 
