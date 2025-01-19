@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en-US">
+<html lang="en" data-bs-theme="dark">
 
 <head>
   <meta charset="utf-8"/>
@@ -8,6 +8,9 @@
   <script src="/static/js/htmx.min.js"></script>
   <script src="/static/js/htmx-json-enc.js"></script>
   <script src="/static/js/main.js"></script>
+  <script>
+      document.documentElement.setAttribute('data-bs-theme', (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+  </script>
 
   <title>Mullvad controller</title>
 </head>

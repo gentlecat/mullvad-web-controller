@@ -2,7 +2,7 @@ function initLocations(locationsContainer, locations) {
 
     locations.forEach(location => {
         const button = document.createElement('button');
-        button.classList.add('btn', 'btn-light');
+        button.classList.add('btn', 'btn-outline-primary');
 
         const flagEmoji = String.fromCodePoint(
             ...location.country
