@@ -4,6 +4,9 @@ I needed a lightweight web UI for easily switching between relay locations for a
 
 Note that I'm using this on **Debian** with **systemd**. If your setup is different, some changes might be needed.
 
+> [!WARNING]  
+> **Do not expose this outside of your local network.** In my case, I embed this UI in a Home Assistant dashboard.
+
 ## Installation
 
 Having Mullvad with [the CLI](https://mullvad.net/en/help/how-use-mullvad-cli) installed is a prerequisite. You will
@@ -31,5 +34,4 @@ make uninstall
 systemctl status mullvad-web-controller
 ```
 
-URL to access the UI should be visible in the logs. By def
-ault it runs on port 8666.
+URL to access the UI should be visible in the logs. By default it runs on port 8666.
