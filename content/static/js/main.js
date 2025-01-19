@@ -20,9 +20,11 @@ function initLocations(locationsContainer, locations) {
 
         locationsContainer.appendChild(button);
 
-        button.addEventListener('htmx:afterRequest', function (event) {
+        button.addEventListener('htmx:afterRequest', async function (event) {
             if (event.detail.successful) {
                 console.debug(event.detail.xhr);
+                setResponseMessage('<i>Retrieving the current location...</i>');
+                await new Promise(r => setTimeout(r, 2000));
                 setCurrentLocation();
             } else {
                 setResponseMessage(event.detail.xhr.response);
