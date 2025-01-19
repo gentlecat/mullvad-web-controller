@@ -45,16 +45,16 @@ window.onload = function () {
         document.getElementById('location-selector'),
         [
             {country: "al", city: "tia"}, // Tirana, Albania
-            {country: "ca", city: "yvr"}, // Vancouver, Canada
-            {country: "us", city: "sjc"}, // San Jose, USA
-            {country: "us", city: "sea"}, // Seattle, USA
-            {country: "tr", city: "ist"}, // Istanbul, Turkey
-            {country: "se", city: "sth"}, // Stockholm, Sweden
+            {country: "ca", city: "yvn"}, // Vancouver, Canada
             {country: "ch", city: "zrh"}, // Zurich, Switzerland
-            {country: "nl", city: "ams"}, // Amsterdam, Netherlands
             {country: "de", city: "fra"}, // Frankfurt, Germany
             {country: "jp", city: "tyo"}, // Tokyo, Japan
+            {country: "nl", city: "ams"}, // Amsterdam, Netherlands
+            {country: "se", city: "sth"}, // Stockholm, Sweden
             {country: "sg", city: "sin"}, // Singapore
+            {country: "tr", city: "ist"}, // Istanbul, Turkey
+            {country: "us", city: "sea"}, // Seattle, USA
+            {country: "us", city: "sjc"}, // San Jose, USA
         ]
     );
 
