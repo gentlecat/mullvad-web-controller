@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"os/exec"
-	"time"
 )
 
 type Request struct {
@@ -17,7 +16,6 @@ type Request struct {
 
 type Response struct {
 	Message string `json:"message"`
-	IPInfo  IPInfo `json:"ip_info"`
 }
 
 type RelayLocationChangeHandler struct {
@@ -29,7 +27,7 @@ func NewRelayLocationChangeHandler(devMode bool) *RelayLocationChangeHandler {
 }
 
 func (h *RelayLocationChangeHandler) Handle(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
+	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
@@ -56,18 +54,8 @@ func (h *RelayLocationChangeHandler) Handle(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
-	// A bit of a delay for the network to sort itself out
-	time.Sleep(1 * time.Second)
-
-	ipInfo, err := GetCurrentIPDetails()
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Changed the location but could not retrieve IP info: %+v", err), http.StatusInternalServerError)
-		return
-	}
-
 	resp := Response{
 		Message: "Done",
-		IPInfo:  ipInfo,
 	}
 	jsonResponse, err := json.Marshal(resp)
 	if err != nil {

@@ -23,9 +23,7 @@ function initLocations(locationsContainer, locations) {
         button.addEventListener('htmx:afterRequest', function (event) {
             if (event.detail.successful) {
                 console.debug(event.detail.xhr);
-                const responseData = JSON.parse(event.detail.xhr.response);
-                const ipInfo = responseData['ip_info'];
-                setResponseMessage(`IP: <b>${ipInfo.ip}</b><br />Country: <b>${ipInfo.country}</b><br />City: <b>${ipInfo.city}</b><br />Hosted by: <b>${ipInfo.org}</b>`);
+                setCurrentLocation();
             } else {
                 setResponseMessage(event.detail.xhr.response);
             }
@@ -33,6 +31,27 @@ function initLocations(locationsContainer, locations) {
     });
 
     htmx.process(locationsContainer);
+}
+
+function setCurrentLocation() {
+    fetch('/api/ip')
+        .then(response => {
+            if (!response.ok) {
+                setResponseMessage("Failed to fetch current IP info");
+            }
+            return response.json();
+        })
+        .then(ipInfo => {
+            setResponseMessage(`
+                Country: <b>${ipInfo.country}</b><br />
+                City: <b>${ipInfo.city}</b><br />
+                IP: ${ipInfo.ip}<br />
+                Hosted by: ${ipInfo.org}
+            `)
+        })
+        .catch(error => {
+            setResponseMessage(error);
+        });
 }
 
 function setResponseMessage(html) {
@@ -57,5 +76,7 @@ window.onload = function () {
             {country: "us", city: "sjc", name: "San Jose"},
         ]
     );
+
+    setCurrentLocation();
 
 };

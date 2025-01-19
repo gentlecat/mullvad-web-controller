@@ -24,6 +24,7 @@ func main() {
 	http.Handle("/", http.FileServer(http.FS(actualContent)))
 
 	http.HandleFunc("/api/relay/location", api.NewRelayLocationChangeHandler(*devMode).Handle)
+	http.HandleFunc("/api/ip", api.HandleIPRetrieval)
 
 	fmt.Printf("Server listening on http://%s:%d\n", *host, *port)
 	err := http.ListenAndServe(fmt.Sprintf("%s:%d", *host, *port), nil)
