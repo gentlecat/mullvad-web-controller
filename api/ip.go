@@ -46,17 +46,21 @@ func HandleIPRetrieval(w http.ResponseWriter, r *http.Request) {
 
 	ipInfo, err := getCurrentIPDetails()
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Changed the location but could not retrieve IP info: %+v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Could not retrieve IP info: %+v", err), http.StatusInternalServerError)
+		fmt.Printf("Failed to retrieve current IP info: %+v\n", err)
 		return
 	}
 
 	jsonResponse, err := json.Marshal(ipInfo)
 	if err != nil {
 		http.Error(w, "Error marshalling response", http.StatusInternalServerError)
+		fmt.Printf("Failed to serialize current IP info: %+v\n", err)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonResponse)
+
+	fmt.Printf("Retrieved current IP info: %+v\n", ipInfo)
 }
