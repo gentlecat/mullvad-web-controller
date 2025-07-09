@@ -66,6 +66,8 @@ window.onload = function () {
         document.getElementById('location-selector'),
         [
             {country: "al", city: "tia", name: "Tirana"},
+            {country: "au", city: "adl", name: "Adelaide"},
+            {country: "au", city: "bne", name: "Brisbane"},
             {country: "ca", city: "van", name: "Vancouver"},
             {country: "ch", city: "zrh", name: "Zurich"},
             {country: "de", city: "fra", name: "Frankfurt"},
