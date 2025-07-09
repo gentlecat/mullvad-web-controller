@@ -1,8 +1,6 @@
 module go.roman.zone/mullvad-web-controller
 
-go 1.23
-
-toolchain go1.24.4
+go 1.18
 
 require github.com/hashicorp/go-retryablehttp v0.7.8
 
