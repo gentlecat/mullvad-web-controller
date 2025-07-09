@@ -60,27 +60,28 @@ function setResponseMessage(html) {
     document.getElementById('response').innerHTML = html;
 }
 
+function init() {
+   fetch('/api/relays')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch locations');
+            }
+            return response.json();
+        })
+        .then(locations => {
+          console.debug(locations)
+            initLocations(
+                document.getElementById('location-selector'),
+                locations,
+            );
+            setCurrentLocation();
+        })
+        .catch(error => {
+            console.error('Error fetching locations:', error);
+            throw error;
+        });
+}
+
 window.onload = function () {
-
-    initLocations(
-        document.getElementById('location-selector'),
-        [
-            {country: "al", city: "tia", name: "Tirana"},
-            {country: "au", city: "adl", name: "Adelaide"},
-            {country: "au", city: "bne", name: "Brisbane"},
-            {country: "ca", city: "van", name: "Vancouver"},
-            {country: "ch", city: "zrh", name: "Zurich"},
-            {country: "de", city: "fra", name: "Frankfurt"},
-            {country: "jp", city: "tyo", name: "Tokyo"},
-            {country: "nl", city: "ams", name: "Amsterdam"},
-            {country: "se", city: "sth", name: "Stockholm"},
-            {country: "sg", city: "sin", name: "Singapore"},
-            {country: "tr", city: "ist", name: "Istanbul"},
-            {country: "us", city: "sea", name: "Seattle"},
-            {country: "us", city: "sjc", name: "San Jose"},
-        ]
-    );
-
-    setCurrentLocation();
-
+    init();
 };
