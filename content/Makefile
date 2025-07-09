@@ -13,7 +13,7 @@ styles-watch : deps
 
 copy-htmx : deps
 	cp node_modules/htmx.org/dist/htmx.min.js static/js/htmx.min.js
-	cp node_modules/htmx.org/dist/ext/json-enc.js static/js/htmx-json-enc.js
+	cp node_modules/htmx-ext-json-enc/json-enc.js static/js/htmx-json-enc.js
 
 build : copy-htmx styles
 
