@@ -9,12 +9,12 @@ import (
 	"os/exec"
 )
 
-type Request struct {
+type RelayLocationChangeRequest struct {
 	Country string `json:"country"` // A two-letter country code, or 'any'
 	City    string `json:"city"`    // A three-letter city code
 }
 
-type Response struct {
+type RelayLocationChangeResponse struct {
 	Message string `json:"message"`
 }
 
@@ -39,7 +39,7 @@ func (h *RelayLocationChangeHandler) Handle(w http.ResponseWriter, r *http.Reque
 	}
 	defer r.Body.Close()
 
-	var req Request
+	var req RelayLocationChangeRequest
 	err = json.Unmarshal(body, &req)
 	if err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
@@ -54,7 +54,7 @@ func (h *RelayLocationChangeHandler) Handle(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
-	resp := Response{
+	resp := RelayLocationChangeResponse{
 		Message: "Done",
 	}
 	jsonResponse, err := json.Marshal(resp)

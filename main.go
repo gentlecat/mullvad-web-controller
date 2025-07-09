@@ -4,10 +4,12 @@ import (
 	"embed"
 	"flag"
 	"fmt"
-	"go.roman.zone/mullvad-web-controller/api"
 	"io/fs"
 	"log"
 	"net/http"
+	"time"
+
+	"go.roman.zone/mullvad-web-controller/api"
 )
 
 //go:embed content/*.html content/static/*
@@ -23,6 +25,7 @@ func main() {
 
 	http.Handle("/", http.FileServer(http.FS(actualContent)))
 
+	http.HandleFunc("/api/relays", api.NewRelayLocationsHandler(time.Hour*24).Handle)
 	http.HandleFunc("/api/relay/location", api.NewRelayLocationChangeHandler(*devMode).Handle)
 	http.HandleFunc("/api/ip", api.HandleIPRetrieval)
 

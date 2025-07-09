@@ -7,8 +7,6 @@ Note that I'm using this on **Debian** with **systemd**. If your setup is differ
 > [!WARNING]
 > **Do not expose this outside of your local network.** In my case, I embed this UI in a Home Assistant dashboard.
 
-The set of locations is hardcoded and very limited. A better setup would be to make it more comprehensive and have a better selection mechanism. If you are interested in making this improvement, please feel free to submit a pull request.
-
 ## Installation
 
 Having Mullvad with [the CLI](https://mullvad.net/en/help/how-use-mullvad-cli) installed is a prerequisite. You will
