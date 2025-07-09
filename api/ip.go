@@ -3,7 +3,9 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/go-retryablehttp"
 	"net/http"
+	"time"
 )
 
 type IPInfo struct {
@@ -19,7 +21,13 @@ type IPInfo struct {
 }
 
 func getCurrentIPDetails() (IPInfo, error) {
-	resp, err := http.Get("https://ipinfo.io/json")
+	retryClient := retryablehttp.NewClient()
+	retryClient.RetryMax = 5
+	retryClient.RetryWaitMin = 1 * time.Second
+	retryClient.RetryWaitMax = 30 * time.Second
+	retryClient.Backoff = retryablehttp.LinearJitterBackoff
+
+	resp, err := retryClient.Get("https://ipinfo.io/json")
 	if err != nil {
 		return IPInfo{}, fmt.Errorf("error making request: %w", err)
 	}
