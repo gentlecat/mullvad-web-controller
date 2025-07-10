@@ -15,7 +15,11 @@ copy-htmx : deps
 	cp node_modules/htmx.org/dist/htmx.min.js static/js/htmx.min.js
 	cp node_modules/htmx-ext-json-enc/json-enc.js static/js/htmx-json-enc.js
 
-build : copy-htmx styles
+copy-choices : deps
+	cp node_modules/choices.js/public/assets/scripts/choices.min.js static/js/choices.min.js
+	cp node_modules/choices.js/public/assets/styles/choices.min.css static/styles/choices.min.css
+
+build : copy-htmx copy-choices styles
 
 serve : build
 	echo "Starting server on http://localhost:8080/"

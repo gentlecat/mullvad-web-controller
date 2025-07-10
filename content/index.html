@@ -5,9 +5,11 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
   <link rel="stylesheet" href="/static/styles/main.css"/>
+  <link rel="stylesheet" href="/static/styles/choices.min.css"/>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌏</text></svg>">
   <script src="/static/js/htmx.min.js"></script>
   <script src="/static/js/htmx-json-enc.js"></script>
+  <script src="/static/js/choices.min.js"></script>
   <script src="/static/js/main.js"></script>
   <script>
       document.documentElement.setAttribute('data-bs-theme', (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
@@ -20,7 +22,11 @@
 
 <div class="container-fluid px-5">
 
-  <div id="location-selector"></div>
+  <div class="mb-3">
+    <select id="location-selector" class="form-select">
+      <option value="">Choose a location...</option>
+    </select>
+  </div>
   <div id="response"></div>
 
 </div>

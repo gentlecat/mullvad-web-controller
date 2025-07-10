@@ -17,11 +17,51 @@ body {
   }
 
   #location-selector {
-    .btn {
-      margin: {
-        top: 10px;
-        right: 10px;
+    margin-bottom: 20px;
+  }
+
+  .choices {
+    &[data-type*="select-one"] {
+      .choices__inner {
+        @include text-regular;
+        background-color: var(--bs-body-bg);
+        border-color: var(--bs-border-color);
+        color: var(--bs-body-color);
       }
+    }
+
+    .choices__list--dropdown {
+      background-color: var(--bs-body-bg);
+      border-color: var(--bs-border-color);
+
+      .choices__item {
+        @include text-regular;
+        color: var(--bs-body-color);
+
+        &--selectable {
+          &:hover,
+          &.is-highlighted {
+            background-color: var(--bs-primary);
+            color: var(--bs-primary-text);
+          }
+        }
+      }
+    }
+
+    .choices__input {
+      @include text-regular;
+      background-color: var(--bs-body-bg) !important;
+      color: var(--bs-body-color) !important;
+
+      &::placeholder {
+        color: var(--bs-secondary-color) !important;
+      }
+    }
+
+    .choices__input--cloned {
+      @include text-regular;
+      background-color: var(--bs-body-bg) !important;
+      color: var(--bs-body-color) !important;
     }
   }
 
