@@ -7,6 +7,8 @@ Note that I'm using this on **Debian** with **systemd**. If your setup is differ
 > [!WARNING]
 > **Do not expose this outside of your local network.** In my case, I embed this UI in a Home Assistant dashboard.
 
+<img width="1264" src="https://github.com/user-attachments/assets/0f93ae01-827a-44a6-93ce-51fa1d1cad19" />
+
 ## Installation
 
 Having Mullvad with [the CLI](https://mullvad.net/en/help/how-use-mullvad-cli) installed is a prerequisite. You will
