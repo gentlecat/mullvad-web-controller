@@ -29,3 +29,6 @@ jobs:
 
       - name: Build
         run: make build
+
+      - name: Vulnerability check
+        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
