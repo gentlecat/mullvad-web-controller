@@ -4,20 +4,23 @@ permissions:
   contents: read
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
 
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - name: Checkout
+        uses: actions/checkout@v7
 
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v7.1.0
+      - name: Set up Node
+        uses: actions/setup-node@v7
 
       - name: Set up Go
         uses: actions/setup-go@v7
