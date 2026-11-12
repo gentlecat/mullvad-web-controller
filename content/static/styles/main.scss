@@ -1,4 +1,4 @@
-@import "../../node_modules/bootstrap/scss/bootstrap";
+@use "bootstrap/scss/bootstrap";
 
 @mixin text-regular {
   font: {

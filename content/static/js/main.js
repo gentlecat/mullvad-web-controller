@@ -1,7 +1,17 @@
 let choicesInstance = null;
 
+// Follow the system color scheme, including changes while the page is open
+const darkSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+function applyColorScheme() {
+    document.documentElement.setAttribute('data-bs-theme', darkSchemeQuery.matches ? 'dark' : 'light');
+}
+
+applyColorScheme();
+darkSchemeQuery.addEventListener('change', applyColorScheme);
+
 function initLocations(selectElement, locations) {
-    selectElement.innerHTML = '<option value="">Choose a location...</option>';
+    selectElement.replaceChildren(new Option('Choose a location...', ''));
 
     // Transform locations into choices format
     const choices = locations.map(location => {
@@ -11,9 +21,10 @@ function initLocations(selectElement, locations) {
                 .split('')
                 .map(char => 0x1F1E6 + char.charCodeAt(0) - 65)
         );
+        const name = location.countryName ? `${location.name}, ${location.countryName}` : location.name;
         return {
             value: JSON.stringify({country: location.country, city: location.city}),
-            label: `${flagEmoji} ${location.name}`,
+            label: `${flagEmoji} ${name}`,
             customProperties: {
                 country: location.country,
                 city: location.city
@@ -22,6 +33,7 @@ function initLocations(selectElement, locations) {
     });
 
     choicesInstance = new Choices(selectElement, {
+        allowHTML: false,
         searchEnabled: true,
         searchPlaceholderValue: 'Search locations...',
         itemSelectText: 'Press to select',
@@ -36,7 +48,7 @@ function initLocations(selectElement, locations) {
 
         if (selectedValue) {
             const locationData = JSON.parse(selectedValue);
-            setResponseMessage('<i>Connecting to selected location...</i>');
+            setResponseMessage(italic('Connecting to selected location...'));
 
             fetch('/api/relay/location', {
                 method: 'POST',
@@ -48,7 +60,7 @@ function initLocations(selectElement, locations) {
             .then(response => {
                 if (response.ok) {
                     setTimeout(() => {
-                        setResponseMessage('<i>Retrieving the current location...</i>');
+                        setResponseMessage(italic('Retrieving the current location...'));
                         setCurrentLocation();
                     }, 2000);
                 } else {
@@ -69,18 +81,17 @@ function setCurrentLocation() {
     fetch('/api/ip')
         .then(response => {
             if (!response.ok) {
-                setResponseMessage("Failed to fetch current IP info");
-                return;
+                throw new Error('Failed to fetch current IP info');
             }
             return response.json();
         })
         .then(ipInfo => {
-            setResponseMessage(`
-                Country: <b>${ipInfo.country}</b><br />
-                City: <b>${ipInfo.city}</b><br />
-                IP: ${ipInfo.ip}<br />
-                Hosted by: ${ipInfo.org}
-            `)
+            setResponseMessage(
+                'Country: ', bold(ipInfo.country), document.createElement('br'),
+                'City: ', bold(ipInfo.city), document.createElement('br'),
+                `IP: ${ipInfo.ip}`, document.createElement('br'),
+                `Hosted by: ${ipInfo.org}`
+            );
         })
         .catch(error => {
             setResponseMessage(`Error: ${error.message}`);
@@ -88,15 +99,28 @@ function setCurrentLocation() {
         });
 }
 
-function setResponseMessage(html) {
-    document.getElementById('response').innerHTML = html;
+// Accepts strings (inserted as text, never parsed as HTML) and DOM nodes
+function setResponseMessage(...content) {
+    document.getElementById('response').replaceChildren(...content);
+}
+
+function italic(text) {
+    const element = document.createElement('i');
+    element.textContent = text;
+    return element;
+}
+
+function bold(text) {
+    const element = document.createElement('b');
+    element.textContent = text;
+    return element;
 }
 
 function init() {
     // Hide the location selector and show loading message
     const locationContainer = document.getElementById('location-selector').parentElement;
     locationContainer.style.display = 'none';
-    setResponseMessage('<i>Loading locations...</i>');
+    setResponseMessage(italic('Loading locations...'));
 
     fetch('/api/relays')
         .then(response => {
