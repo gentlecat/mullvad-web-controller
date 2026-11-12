@@ -1,20 +1,22 @@
 #!/bin/bash
 set -e
 
-install() {
+install_service() {
   echo "Building and installing mullvad-web-controller service..."
 
-  cp ./build/mullvad-web-controller /usr/local/bin/
-  cp mullvad-web-controller.service /etc/systemd/system/
+  install -m 0755 ./build/mullvad-web-controller /usr/local/bin/
+  install -m 0644 mullvad-web-controller.service /etc/systemd/system/
 
   systemctl daemon-reload
   systemctl enable mullvad-web-controller.service
-  systemctl start mullvad-web-controller.service
+  # Restart rather than start, so that reinstalling picks up the new binary.
+  systemctl restart mullvad-web-controller.service
 
   echo "mullvad-web-controller service installed and started."
+  echo "To change the settings, set environment variables in /etc/default/mullvad-web-controller and restart the service."
 }
 
-uninstall() {
+uninstall_service() {
   echo "Uninstalling mullvad-web-controller service..."
 
   systemctl stop mullvad-web-controller.service
@@ -35,10 +37,10 @@ fi
 
 case "$1" in
   install)
-    install
+    install_service
     ;;
   uninstall)
-    uninstall
+    uninstall_service
     ;;
   *)
     echo "Invalid argument. Use 'install' or 'uninstall'."

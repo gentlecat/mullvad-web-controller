@@ -1,21 +1,29 @@
+.PHONY : clean build-content fmt vet test build install uninstall run-dev
+
 clean :
 	-rm -r build
 
-build-content:
+build-content :
 	$(MAKE) -C content build
 
 fmt :
 	$(info Reformatting all source files...)
 	go fmt ./...
 
+vet :
+	go vet ./...
+
+test : fmt vet
+	go test ./...
+
 build : clean fmt build-content
 	go build -o ./build/mullvad-web-controller go.roman.zone/mullvad-web-controller
 
-install: build
+install : build
 	sudo ./service.sh install
 
-uninstall:
+uninstall :
 	sudo ./service.sh uninstall
 
 run-dev : build
-	./build/mullvad-web-controller --dev --host localhost
+	MULLVAD_WEB_DRY_RUN=1 MULLVAD_WEB_ADDR=localhost:8666 ./build/mullvad-web-controller

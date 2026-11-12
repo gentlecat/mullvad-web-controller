@@ -1,14 +1,35 @@
 [Unit]
-Description=Mullvad CLI Controller
-After=network.target
+Description=Mullvad Web Controller
+Wants=network-online.target
+After=network-online.target mullvad-daemon.service
 
 [Service]
 DynamicUser=yes
+EnvironmentFile=-/etc/default/mullvad-web-controller
 ExecStart=/usr/local/bin/mullvad-web-controller
 Restart=on-failure
 RestartSec=5
 StandardOutput=journal
 StandardError=journal
+
+# Limit what the service can access on the host.
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+# AF_UNIX lets the mullvad CLI reach the daemon socket at /var/run/mullvad-vpn.
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=
+SystemCallFilter=@system-service
+SystemCallArchitectures=native
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
 
 [Install]
 WantedBy=multi-user.target
