@@ -1,12 +1,16 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/go-retryablehttp"
+	"log/slog"
 	"net/http"
-	"time"
+
+	"github.com/hashicorp/go-retryablehttp"
 )
+
+const ipInfoURL = "https://ipinfo.io/json"
 
 type IPInfo struct {
 	IP       string `json:"ip"`
@@ -20,55 +24,47 @@ type IPInfo struct {
 	Timezone string `json:"timezone"`
 }
 
-func getCurrentIPDetails() (IPInfo, error) {
-	retryClient := retryablehttp.NewClient()
-	retryClient.RetryMax = 5
-	retryClient.RetryWaitMin = 1 * time.Second
-	retryClient.RetryWaitMax = 30 * time.Second
-	retryClient.Backoff = retryablehttp.LinearJitterBackoff
+type IPHandler struct {
+	client *retryablehttp.Client
+	url    string
+}
 
-	resp, err := retryClient.Get("https://ipinfo.io/json")
+func NewIPHandler(client *retryablehttp.Client) *IPHandler {
+	return &IPHandler{client: client, url: ipInfoURL}
+}
+
+func (h *IPHandler) Handle(w http.ResponseWriter, r *http.Request) {
+	ipInfo, err := h.getCurrentIPDetails(r.Context())
+	if err != nil {
+		slog.Error("failed to retrieve current IP info", "error", err)
+		http.Error(w, "Could not retrieve IP info", http.StatusBadGateway)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, ipInfo)
+	slog.Info("retrieved current IP info", "ip", ipInfo.IP, "country", ipInfo.Country, "city", ipInfo.City)
+}
+
+func (h *IPHandler) getCurrentIPDetails(ctx context.Context) (IPInfo, error) {
+	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, h.url, nil)
+	if err != nil {
+		return IPInfo{}, fmt.Errorf("error creating request: %w", err)
+	}
+
+	resp, err := h.client.Do(req)
 	if err != nil {
 		return IPInfo{}, fmt.Errorf("error making request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return IPInfo{}, fmt.Errorf("error: unexpected status code: %d", resp.StatusCode)
+		return IPInfo{}, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
 	var data IPInfo
-	err = json.NewDecoder(resp.Body).Decode(&data)
-	if err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
 		return IPInfo{}, fmt.Errorf("error decoding JSON: %w", err)
 	}
 
 	return data, nil
-}
-
-func HandleIPRetrieval(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
-	ipInfo, err := getCurrentIPDetails()
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Could not retrieve IP info: %+v", err), http.StatusInternalServerError)
-		fmt.Printf("Failed to retrieve current IP info: %+v\n", err)
-		return
-	}
-
-	jsonResponse, err := json.Marshal(ipInfo)
-	if err != nil {
-		http.Error(w, "Error marshalling response", http.StatusInternalServerError)
-		fmt.Printf("Failed to serialize current IP info: %+v\n", err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(jsonResponse)
-
-	fmt.Printf("Retrieved current IP info: %+v\n", ipInfo)
 }

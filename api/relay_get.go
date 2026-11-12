@@ -1,77 +1,86 @@
 package api
 
 import (
+	"cmp"
+	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/go-retryablehttp"
-	"github.com/patrickmn/go-cache"
+	"log/slog"
 	"net/http"
+	"slices"
 	"strings"
+	"sync"
 	"time"
+
+	"github.com/hashicorp/go-retryablehttp"
 )
 
+const relaysURL = "https://api.mullvad.net/app/v1/relays"
+
 type Relay struct {
-	Country string `json:"country"` // A two-letter country code, or 'any'
-	City    string `json:"city"`    // A three-letter city code
-	Name    string `json:"name"`    // Full city name
+	Country     string `json:"country"`     // A two-letter country code
+	City        string `json:"city"`        // A three-letter city code
+	Name        string `json:"name"`        // Full city name
+	CountryName string `json:"countryName"` // Full country name
 }
 
 type RelayLocationsHandler struct {
-	cache *cache.Cache
+	client *retryablehttp.Client
+	url    string
+	ttl    time.Duration
+
+	mu        sync.Mutex
+	relays    []Relay
+	fetchedAt time.Time
 }
 
-func NewRelayLocationsHandler(cacheDuration time.Duration) *RelayLocationsHandler {
-	return &RelayLocationsHandler{
-		cache: cache.New(cacheDuration, time.Hour),
-	}
+func NewRelayLocationsHandler(client *retryablehttp.Client, ttl time.Duration) *RelayLocationsHandler {
+	return &RelayLocationsHandler{client: client, url: relaysURL, ttl: ttl}
 }
 
 func (h *RelayLocationsHandler) Handle(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
-	if cachedData, found := h.cache.Get("relays"); found {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(cachedData.([]byte))
-		fmt.Printf("Served cached relay data\n")
-		return
-	}
-
-	relays, err := getRelays()
+	relays, err := h.getRelays(r.Context())
 	if err != nil {
-		http.Error(w, "Error retrieving relays", http.StatusInternalServerError)
-		fmt.Printf("Error retrieving relays %v\n", err)
+		slog.Error("failed to retrieve relays", "error", err)
+		http.Error(w, "Error retrieving relays", http.StatusBadGateway)
 		return
 	}
 
-	response, err := json.Marshal(relays)
-	if err != nil {
-		http.Error(w, "Error marshalling response", http.StatusInternalServerError)
-		fmt.Printf("Error marshalling response %v\n", err)
-		return
-	}
-
-	h.cache.Set("relays", response, cache.DefaultExpiration)
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(response)
-
-	fmt.Printf("Retrieved %d relays and updated cache\n", len(relays))
+	writeJSON(w, http.StatusOK, relays)
 }
 
-func getRelays() ([]Relay, error) {
-	retryClient := retryablehttp.NewClient()
-	retryClient.RetryMax = 5
-	retryClient.RetryWaitMin = 1 * time.Second
-	retryClient.RetryWaitMax = 30 * time.Second
-	retryClient.Backoff = retryablehttp.LinearJitterBackoff
+// getRelays returns cached relays, refreshing them once the cache expires.
+// If a refresh fails, stale data is served rather than an error.
+func (h *RelayLocationsHandler) getRelays(ctx context.Context) ([]Relay, error) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
 
-	resp, err := retryClient.Get("https://api.mullvad.net/app/v1/relays")
+	if h.relays != nil && time.Since(h.fetchedAt) < h.ttl {
+		return h.relays, nil
+	}
 
+	relays, err := h.fetchRelays(ctx)
+	if err != nil {
+		if h.relays != nil {
+			slog.Warn("failed to refresh relays, serving stale data", "error", err)
+			return h.relays, nil
+		}
+		return nil, err
+	}
+
+	h.relays = relays
+	h.fetchedAt = time.Now()
+	slog.Info("updated relay cache", "count", len(relays))
+	return relays, nil
+}
+
+func (h *RelayLocationsHandler) fetchRelays(ctx context.Context) ([]Relay, error) {
+	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, h.url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	resp, err := h.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch relays: %w", err)
 	}
@@ -92,7 +101,7 @@ func getRelays() ([]Relay, error) {
 		return nil, fmt.Errorf("failed to decode JSON response: %w", err)
 	}
 
-	var relays []Relay
+	relays := make([]Relay, 0, len(apiResponse.Locations))
 	for key, location := range apiResponse.Locations {
 		// Split key on "-" to get country and city codes
 		parts := strings.Split(key, "-")
@@ -100,13 +109,17 @@ func getRelays() ([]Relay, error) {
 			continue
 		}
 
-		relay := Relay{
-			Country: parts[0],
-			City:    parts[1],
-			Name:    location.City,
-		}
-		relays = append(relays, relay)
+		relays = append(relays, Relay{
+			Country:     parts[0],
+			City:        parts[1],
+			Name:        location.City,
+			CountryName: location.Country,
+		})
 	}
+
+	slices.SortFunc(relays, func(a, b Relay) int {
+		return cmp.Or(cmp.Compare(a.CountryName, b.CountryName), cmp.Compare(a.Name, b.Name))
+	})
 
 	return relays, nil
 }
