@@ -19,11 +19,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Set up Node
-        uses: actions/setup-node@v7
-        with:
-          node-version: 26
-
       - name: Set up Go
         uses: actions/setup-go@v7
         with:
@@ -34,10 +29,6 @@ jobs:
 
       - name: Format
         run: test -z "$(gofmt -l .)"
-
-      # The frontend assets are embedded into the binary, so they have to exist before vet, build and test.
-      - name: Build content
-        run: make build-content
 
       - name: Vet
         run: go vet ./...

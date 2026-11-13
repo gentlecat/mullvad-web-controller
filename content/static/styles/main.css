@@ -1,0 +1,388 @@
+/* Charter for text, National Park for headings */
+
+@font-face {
+  font-family: "Charter";
+  src: url("../fonts/charter/charter_regular.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Charter";
+  src: url("../fonts/charter/charter_bold.woff2") format("woff2");
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "National Park";
+  src: url("../fonts/national-park/NationalPark-VariableVF.woff2") format("woff2");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --bg: #f2f1ee;
+  --field: #fbfbf9;
+  --hover: #e7e5e0;
+  --rule: #d9d6cf;
+  --text: #1d1d1b;
+  --muted: #6b6964;
+  --accent: #0483c3;
+  --accent-bg: #e5f1ff;
+  --ok: #2e7a4b;
+  --busy: #9a5d0f;
+  --bad: #a8352c;
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1b1d;
+    --field: #222326;
+    --hover: #2a2b2f;
+    --rule: #35373b;
+    --text: #e6e4df;
+    --muted: #9b988f;
+    --accent: #4da6e0;
+    --accent-bg: #16314a;
+    --ok: #79c494;
+    --busy: #ddaa5c;
+    --bad: #e5847a;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 18px/1.5 "Charter", Georgia, serif;
+}
+
+p,
+h2 {
+  margin: 0;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.app {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 32px 16px 64px;
+}
+
+/* Tunnel status */
+
+.status {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--rule);
+
+  --state-color: var(--muted);
+
+  &[data-state="connected"] {
+    --state-color: var(--ok);
+  }
+
+  &[data-state="connecting"],
+  &[data-state="disconnecting"],
+  &[data-state="switching"] {
+    --state-color: var(--busy);
+  }
+
+  &[data-state="disconnected"],
+  &[data-state="error"],
+  &[data-state="unavailable"] {
+    --state-color: var(--bad);
+  }
+}
+
+.status-flag {
+  flex: none;
+  font-size: 44px;
+  line-height: 1;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.status-body {
+  min-width: 0;
+}
+
+.status-state {
+  color: var(--state-color);
+  font-family: "National Park", sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.status-location {
+  overflow: hidden;
+  font-family: "National Park", sans-serif;
+  font-size: 1.625rem;
+  font-weight: 500;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+}
+
+.status-details {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Errors */
+
+.notice {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding: 10px 12px;
+  color: var(--bad);
+  border: 1px solid currentcolor;
+  border-radius: 6px;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+.notice-action {
+  flex: none;
+  padding: 4px 10px;
+  font-weight: 700;
+  background: none;
+  border: 1px solid currentcolor;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Recent locations */
+
+.recent {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 20px;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+.recent-label {
+  margin-right: 4px;
+  color: var(--muted);
+  font-family: "National Park", sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.recent-list {
+  display: contents;
+}
+
+.chip {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 3px 10px;
+  font-size: 0.9375rem;
+  background: var(--field);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--muted);
+  }
+
+  &[aria-current="true"] {
+    color: var(--accent);
+    background: var(--accent-bg);
+    border-color: var(--accent-bg);
+  }
+}
+
+/* Location search and list */
+
+.locations {
+  margin-top: 20px;
+}
+
+.search {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 8px 0;
+  background: var(--bg);
+
+  input {
+    width: 100%;
+    padding: 9px 40px 9px 12px;
+    background: var(--field);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+
+    &:focus {
+      border-color: var(--accent);
+      outline: 1px solid var(--accent);
+      outline-offset: 0;
+    }
+
+    &::placeholder {
+      color: var(--muted);
+    }
+  }
+}
+
+.search-hint {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  padding: 0 6px;
+  color: var(--muted);
+  font: 0.75rem/1.6 ui-monospace, monospace;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  transform: translateY(-50%);
+  pointer-events: none;
+
+  .search:focus-within & {
+    display: none;
+  }
+
+  @media (hover: none) {
+    display: none;
+  }
+}
+
+.location-list {
+  border-top: 1px solid var(--rule);
+
+  &[aria-busy="true"] .location {
+    cursor: progress;
+  }
+}
+
+.country {
+  border-bottom: 1px solid var(--rule);
+}
+
+.location {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px;
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--hover);
+  }
+
+  &:focus-visible {
+    outline-offset: -2px;
+  }
+
+  &.city {
+    padding-left: 48px;
+  }
+
+  &[aria-current="true"] {
+    background: var(--accent-bg);
+  }
+}
+
+.location-flag {
+  flex: none;
+  width: 28px;
+  font-size: 1.375rem;
+  line-height: 1;
+  text-align: center;
+}
+
+.location-name {
+  flex: 1;
+  min-width: 0;
+
+  .country-name & {
+    font-family: "National Park", sans-serif;
+    font-weight: 500;
+  }
+}
+
+.location-hint {
+  margin-left: 4px;
+  color: var(--muted);
+  font-family: "Charter", Georgia, serif;
+  font-size: 0.875rem;
+}
+
+.location-marker {
+  flex: none;
+  color: var(--accent);
+  font-family: "National Park", sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+
+  &:empty {
+    display: none;
+  }
+
+  &.pending {
+    color: var(--busy);
+  }
+}
+
+.placeholder {
+  padding: 24px 8px;
+  color: var(--muted);
+}

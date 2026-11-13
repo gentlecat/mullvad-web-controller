@@ -1,30 +1,54 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en">
 
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
   <link rel="stylesheet" href="/static/styles/main.css"/>
-  <link rel="stylesheet" href="/static/styles/choices.min.css"/>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌏</text></svg>">
-  <script src="/static/js/choices.min.js"></script>
-  <script src="/static/js/main.js"></script>
+  <script src="/static/js/main.js" defer></script>
 
   <title>Mullvad controller</title>
 </head>
 
 <body>
 
-<div class="container-fluid px-5">
+<main class="app">
 
-  <div class="mb-3">
-    <select id="location-selector" class="form-select">
-      <option value="">Choose a location...</option>
-    </select>
+  <section class="status" id="status" data-state="loading" aria-live="polite" aria-atomic="true">
+    <span class="status-flag" id="status-flag" aria-hidden="true"></span>
+    <div class="status-body">
+      <p class="status-state" id="status-state">Checking the tunnel</p>
+      <p class="status-location" id="status-location"></p>
+      <p class="status-details" id="status-details"></p>
+    </div>
+  </section>
+
+  <div class="notice" id="notice" role="alert" hidden>
+    <span id="notice-text"></span>
+    <button type="button" class="notice-action" id="notice-action" hidden>Try again</button>
   </div>
-  <div id="response"></div>
 
-</div>
+  <section class="recent" id="recent-section" aria-labelledby="recent-heading" hidden>
+    <h2 class="recent-label" id="recent-heading">Recent</h2>
+    <div class="recent-list" id="recent-list"></div>
+  </section>
+
+  <section class="locations" aria-labelledby="locations-heading">
+    <h2 class="visually-hidden" id="locations-heading">Locations</h2>
+    <div class="search">
+      <label class="visually-hidden" for="search">Search locations</label>
+      <input type="search" id="search" placeholder="Search countries and cities" autocomplete="off"
+             spellcheck="false" enterkeyhint="go" aria-controls="location-list" disabled/>
+      <kbd class="search-hint" aria-hidden="true">/</kbd>
+    </div>
+    <div class="location-list" id="location-list">
+      <p class="placeholder">Loading locations</p>
+    </div>
+  </section>
+
+</main>
 
 </body>
 

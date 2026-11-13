@@ -13,15 +13,18 @@ import (
 type Server struct {
 	relays      *RelayLocationsHandler
 	relayChange *RelayLocationChangeHandler
-	ip          *IPHandler
+	status      *StatusHandler
 }
 
 func NewServer(dryRun bool) *Server {
-	client := newHTTPClient()
+	run := runCommand
+	if dryRun {
+		run = newDryRunMullvad().run
+	}
 	return &Server{
-		relays:      NewRelayLocationsHandler(client, 24*time.Hour),
-		relayChange: NewRelayLocationChangeHandler(dryRun),
-		ip:          NewIPHandler(client),
+		relays:      NewRelayLocationsHandler(newHTTPClient(), 24*time.Hour),
+		relayChange: NewRelayLocationChangeHandler(run),
+		status:      NewStatusHandler(run),
 	}
 }
 
@@ -32,7 +35,7 @@ func (s *Server) Routes(static fs.FS) http.Handler {
 	mux.HandleFunc("GET /health", handleHealth)
 	mux.HandleFunc("GET /api/relays", s.relays.Handle)
 	mux.HandleFunc("POST /api/relay/location", s.relayChange.Handle)
-	mux.HandleFunc("GET /api/ip", s.ip.Handle)
+	mux.HandleFunc("GET /api/status", s.status.Handle)
 
 	return http.NewCrossOriginProtection().Handler(mux)
 }

@@ -8,7 +8,7 @@ import (
 
 type Config struct {
 	Addr   string // Address to listen on
-	DryRun bool   // Skip calling the Mullvad CLI when changing relays
+	DryRun bool   // Use a fake Mullvad CLI instead of the real one
 }
 
 // Load reads the configuration from environment variables, falling back to defaults.

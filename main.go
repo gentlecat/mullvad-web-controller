@@ -42,7 +42,7 @@ func run() error {
 		Handler: api.NewServer(cfg.DryRun).Routes(static),
 		// No ReadTimeout: request bodies are tiny and capped, so the header timeout is enough.
 		ReadHeaderTimeout: 10 * time.Second,
-		// Upstream calls retry, so leave room for a slow IP lookup.
+		// Upstream calls retry, so leave room for a slow relay list download.
 		WriteTimeout: 60 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}

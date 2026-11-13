@@ -129,7 +129,6 @@ func TestRelayLocationChangeHandler(t *testing.T) {
 		name        string
 		contentType string
 		body        string
-		dryRun      bool
 		commandErr  error
 		wantStatus  int
 		wantArgs    []string
@@ -147,13 +146,6 @@ func TestRelayLocationChangeHandler(t *testing.T) {
 			body:        `{"country":"se"}`,
 			wantStatus:  http.StatusOK,
 			wantArgs:    []string{"relay", "set", "location", "se"},
-		},
-		{
-			name:        "dry run",
-			contentType: "application/json",
-			body:        `{"country":"se","city":"got"}`,
-			dryRun:      true,
-			wantStatus:  http.StatusOK,
 		},
 		{name: "flag as country", contentType: "application/json", body: `{"country":"-h","city":"got"}`, wantStatus: http.StatusBadRequest},
 		{name: "flag as city", contentType: "application/json", body: `{"country":"se","city":"--x"}`, wantStatus: http.StatusBadRequest},
@@ -178,14 +170,13 @@ func TestRelayLocationChangeHandler(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var gotArgs []string
-			h := NewRelayLocationChangeHandler(tt.dryRun)
-			h.runCommand = func(ctx context.Context, name string, args ...string) ([]byte, error) {
+			h := NewRelayLocationChangeHandler(func(ctx context.Context, name string, args ...string) ([]byte, error) {
 				if name != "mullvad" {
 					t.Errorf("command = %q, want mullvad", name)
 				}
 				gotArgs = args
 				return []byte("output"), tt.commandErr
-			}
+			})
 
 			req := httptest.NewRequest(http.MethodPost, "/api/relay/location", strings.NewReader(tt.body))
 			if tt.contentType != "" {
@@ -204,33 +195,109 @@ func TestRelayLocationChangeHandler(t *testing.T) {
 	}
 }
 
-func TestIPHandler(t *testing.T) {
-	upstream, _ := newUpstream(t, `{"ip":"1.2.3.4","city":"Gothenburg","country":"SE","org":"Mullvad"}`, nil)
-	h := NewIPHandler(newTestClient())
-	h.url = upstream.URL
+// cliStatus is real output from mullvad status --json, trimmed to the fields that matter.
+const cliStatus = `{"state":"connected","details":{"endpoint":{"protocol":"udp"},"location":{
+	"ipv4":"149.22.81.199","ipv6":"2a02:6ea0:5100:1::e02b","hostname":"ca-van-wg-301",
+	"city":"Vancouver","country":"Canada"},"feature_indicators":["LanSharing"]}}`
 
+func TestStatusHandler(t *testing.T) {
+	tests := []struct {
+		name       string
+		output     string
+		commandErr error
+		wantStatus int
+		want       Status
+	}{
+		{
+			name:       "connected",
+			output:     cliStatus,
+			wantStatus: http.StatusOK,
+			want: Status{
+				State: "connected", Hostname: "ca-van-wg-301", Country: "ca", City: "van",
+				CountryName: "Canada", CityName: "Vancouver", IPv4: "149.22.81.199", IPv6: "2a02:6ea0:5100:1::e02b",
+			},
+		},
+		{
+			name:       "disconnected",
+			output:     `{"state":"disconnected","details":{"location":{"country":"Canada"},"locked_down":false}}`,
+			wantStatus: http.StatusOK,
+			want:       Status{State: "disconnected", CountryName: "Canada"},
+		},
+		{
+			name:       "unexpected hostname",
+			output:     `{"state":"connected","details":{"location":{"hostname":"relay"}}}`,
+			wantStatus: http.StatusOK,
+			want:       Status{State: "connected", Hostname: "relay"},
+		},
+		{name: "daemon not running", output: "Error: Management interface error", commandErr: errors.New("exit status 1"), wantStatus: http.StatusBadGateway},
+		{name: "malformed output", output: "not json", wantStatus: http.StatusBadGateway},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := NewStatusHandler(func(ctx context.Context, name string, args ...string) ([]byte, error) {
+				if want := []string{"status", "--json"}; name != "mullvad" || !reflect.DeepEqual(args, want) {
+					t.Errorf("command = %q %q, want mullvad %q", name, args, want)
+				}
+				return []byte(tt.output), tt.commandErr
+			})
+
+			rec := httptest.NewRecorder()
+			h.Handle(rec, httptest.NewRequest(http.MethodGet, "/api/status", nil))
+
+			if rec.Code != tt.wantStatus {
+				t.Fatalf("status = %d, want %d (body: %q)", rec.Code, tt.wantStatus, rec.Body.String())
+			}
+			if tt.wantStatus != http.StatusOK {
+				return
+			}
+			var status Status
+			if err := json.Unmarshal(rec.Body.Bytes(), &status); err != nil {
+				t.Fatalf("failed to decode status: %v", err)
+			}
+			if status != tt.want {
+				t.Errorf("status = %+v, want %+v", status, tt.want)
+			}
+		})
+	}
+}
+
+func TestDryRunMullvad(t *testing.T) {
+	m := newDryRunMullvad()
+	relayChange := NewRelayLocationChangeHandler(m.run)
+	status := NewStatusHandler(m.run)
+
+	getStatus := func() Status {
+		t.Helper()
+		rec := httptest.NewRecorder()
+		status.Handle(rec, httptest.NewRequest(http.MethodGet, "/api/status", nil))
+		var s Status
+		if err := json.Unmarshal(rec.Body.Bytes(), &s); err != nil {
+			t.Fatalf("failed to decode status: %v", err)
+		}
+		return s
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/api/relay/location", strings.NewReader(`{"country":"de","city":"ber"}`))
+	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()
-	h.Handle(rec, httptest.NewRequest(http.MethodGet, "/api/ip", nil))
-
+	relayChange.Handle(rec, req)
 	if rec.Code != http.StatusOK {
-		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+		t.Fatalf("relay change status = %d, want %d", rec.Code, http.StatusOK)
 	}
-	var info IPInfo
-	if err := json.Unmarshal(rec.Body.Bytes(), &info); err != nil {
-		t.Fatalf("failed to decode IP info: %v", err)
+
+	if s := getStatus(); s.State != "connecting" || s.Country != "de" || s.City != "ber" {
+		t.Errorf("status right after change = %+v, want connecting to de-ber", s)
 	}
-	want := IPInfo{IP: "1.2.3.4", City: "Gothenburg", Country: "SE", Org: "Mullvad"}
-	if info != want {
-		t.Errorf("IP info = %+v, want %+v", info, want)
+
+	m.setAt = time.Now().Add(-dryRunConnectDelay)
+	if s := getStatus(); s.State != "connected" || s.Country != "de" || s.City != "ber" {
+		t.Errorf("status after delay = %+v, want connected to de-ber", s)
 	}
 }
 
 func TestRoutes(t *testing.T) {
 	s := NewServer(true)
-	s.relayChange.runCommand = func(ctx context.Context, name string, args ...string) ([]byte, error) {
-		t.Error("command should not run in dry-run mode")
-		return nil, nil
-	}
 	static := fstest.MapFS{"index.html": {Data: []byte("<html></html>")}}
 	handler := s.Routes(static)
 
@@ -243,7 +310,8 @@ func TestRoutes(t *testing.T) {
 	}{
 		{name: "index", method: http.MethodGet, path: "/", wantStatus: http.StatusOK},
 		{name: "health", method: http.MethodGet, path: "/health", wantStatus: http.StatusOK},
-		{name: "wrong method", method: http.MethodDelete, path: "/api/ip", wantStatus: http.StatusMethodNotAllowed},
+		{name: "status", method: http.MethodGet, path: "/api/status", wantStatus: http.StatusOK},
+		{name: "wrong method", method: http.MethodDelete, path: "/api/status", wantStatus: http.StatusMethodNotAllowed},
 		{name: "put relay change", method: http.MethodPut, path: "/api/relay/location", wantStatus: http.StatusMethodNotAllowed},
 		{
 			name:       "same-origin change",

@@ -12,10 +12,10 @@ Note that I'm using this on **Debian** with **systemd**. If your setup is differ
 ## Installation
 
 Having Mullvad with [the CLI](https://mullvad.net/en/help/how-use-mullvad-cli) installed is a prerequisite. You will
-also need Go and NodeJS.
+also need Go.
 
 ```shell
-sudo apt install golang nodejs npm -y
+sudo apt install golang -y
 ```
 
 Clone this repository. Build and install the systemd service:
@@ -47,7 +47,7 @@ Settings are read from environment variables:
 | Variable              | Default        | Description                                                                 |
 |-----------------------|----------------|-----------------------------------------------------------------------------|
 | `MULLVAD_WEB_ADDR`    | `0.0.0.0:8666` | Address to listen on.                                                       |
-| `MULLVAD_WEB_DRY_RUN` | `false`        | Set to `1` or `true` to skip calling the Mullvad CLI. Useful for development. |
+| `MULLVAD_WEB_DRY_RUN` | `false`        | Set to `1` or `true` to use a fake Mullvad CLI. Useful for development.     |
 
 The systemd service loads them from `/etc/default/mullvad-web-controller`, if that file exists. For example:
 

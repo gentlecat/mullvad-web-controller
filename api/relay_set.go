@@ -52,12 +52,11 @@ func runCommand(ctx context.Context, name string, args ...string) ([]byte, error
 }
 
 type RelayLocationChangeHandler struct {
-	dryRun     bool
 	runCommand CommandRunner
 }
 
-func NewRelayLocationChangeHandler(dryRun bool) *RelayLocationChangeHandler {
-	return &RelayLocationChangeHandler{dryRun: dryRun, runCommand: runCommand}
+func NewRelayLocationChangeHandler(runCommand CommandRunner) *RelayLocationChangeHandler {
+	return &RelayLocationChangeHandler{runCommand: runCommand}
 }
 
 func (h *RelayLocationChangeHandler) Handle(w http.ResponseWriter, r *http.Request) {
@@ -80,16 +79,12 @@ func (h *RelayLocationChangeHandler) Handle(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if h.dryRun {
-		slog.Info("dry run, not switching relay", "country", req.Country, "city", req.City)
-	} else {
-		if err := h.changeRelay(r.Context(), req); err != nil {
-			slog.Error("failed to change relay", "error", err)
-			http.Error(w, "Failed to change relay", http.StatusBadGateway)
-			return
-		}
-		slog.Info("switched relay", "country", req.Country, "city", req.City)
+	if err := h.changeRelay(r.Context(), req); err != nil {
+		slog.Error("failed to change relay", "error", err)
+		http.Error(w, "Failed to change relay", http.StatusBadGateway)
+		return
 	}
+	slog.Info("switched relay", "country", req.Country, "city", req.City)
 
 	writeJSON(w, http.StatusOK, RelayLocationChangeResponse{Message: "Done"})
 }

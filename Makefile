@@ -1,10 +1,7 @@
-.PHONY : clean build-content fmt vet test build install uninstall run-dev
+.PHONY : clean fmt vet test build install uninstall run-dev
 
 clean :
 	-rm -r build
-
-build-content :
-	$(MAKE) -C content build
 
 fmt :
 	$(info Reformatting all source files...)
@@ -16,7 +13,7 @@ vet :
 test : fmt vet
 	go test ./...
 
-build : clean fmt build-content
+build : clean fmt
 	go build -o ./build/mullvad-web-controller go.roman.zone/mullvad-web-controller
 
 install : build
