@@ -19,6 +19,7 @@ Download the latest [release](https://github.com/gentlecat/mullvad-web-controlle
 arch=$(dpkg --print-architecture)
 curl -fsSL https://github.com/gentlecat/mullvad-web-controller/releases/latest/download/mullvad-web-controller-linux-$arch.tar.gz | tar -xz
 sudo ./mullvad-web-controller-linux-$arch/service.sh install
+rm -r ./mullvad-web-controller-linux-$arch
 ```
 
 Running it again installs the newest release and restarts the service. For the latest changes from `main`, replace `latest/download` with `download/development`.
