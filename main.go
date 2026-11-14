@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime/debug"
 	"syscall"
 	"time"
 
@@ -52,7 +53,7 @@ func run() error {
 
 	serverErr := make(chan error, 1)
 	go func() {
-		slog.Info("starting server", "url", "http://"+cfg.Addr, "dryRun", cfg.DryRun)
+		slog.Info("starting server", "url", "http://"+cfg.Addr, "version", version(), "dryRun", cfg.DryRun)
 		serverErr <- server.ListenAndServe()
 	}()
 
@@ -66,4 +67,12 @@ func run() error {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	return server.Shutdown(shutdownCtx)
+}
+
+// version returns the version that Go stamps from the git tags at build time.
+func version() string {
+	if info, ok := debug.ReadBuildInfo(); ok {
+		return info.Main.Version
+	}
+	return "unknown"
 }

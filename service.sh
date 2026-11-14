@@ -1,11 +1,16 @@
 #!/bin/bash
 set -e
 
-install_service() {
-  echo "Building and installing mullvad-web-controller service..."
+# Release archives have the binary next to this script, and a repository checkout has it in build/.
+dir=$(dirname "$0")
+binary="$dir/mullvad-web-controller"
+[[ -f "$binary" ]] || binary="$dir/build/mullvad-web-controller"
 
-  install -m 0755 ./build/mullvad-web-controller /usr/local/bin/
-  install -m 0644 mullvad-web-controller.service /etc/systemd/system/
+install_service() {
+  echo "Installing mullvad-web-controller service..."
+
+  install -m 0755 "$binary" /usr/local/bin/
+  install -m 0644 "$dir/mullvad-web-controller.service" /etc/systemd/system/
 
   systemctl daemon-reload
   systemctl enable mullvad-web-controller.service

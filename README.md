@@ -11,8 +11,21 @@ Note that I'm using this on **Debian** with **systemd**. If your setup is differ
 
 ## Installation
 
-Having Mullvad with [the CLI](https://mullvad.net/en/help/how-use-mullvad-cli) installed is a prerequisite. You will
-also need Go.
+Having Mullvad with [the CLI](https://mullvad.net/en/help/how-use-mullvad-cli) installed is a prerequisite.
+
+Download the latest [release](https://github.com/gentlecat/mullvad-web-controller/releases) for your architecture (`amd64` or `arm64`), then install the systemd service:
+
+```shell
+arch=$(dpkg --print-architecture)
+curl -fsSL https://github.com/gentlecat/mullvad-web-controller/releases/latest/download/mullvad-web-controller-linux-$arch.tar.gz | tar -xz
+sudo ./mullvad-web-controller-linux-$arch/service.sh install
+```
+
+Running it again installs the newest release and restarts the service. For the latest changes from `main`, replace `latest/download` with `download/development`.
+
+### Building from source
+
+You will need Go:
 
 ```shell
 sudo apt install golang -y

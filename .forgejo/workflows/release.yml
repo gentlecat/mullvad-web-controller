@@ -1,0 +1,52 @@
+name: Release
+
+# Pushing a version tag such as v1.0.0 publishes a release of that commit, and every push to main
+# replaces the "development" pre-release. See release.sh for what each release contains.
+on:
+  push:
+    branches: [ main ]
+    tags: [ "v*" ]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: docker
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # Go reads the version from the tags, and release notes come from earlier tags.
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Test
+        run: go test ./...
+
+      - name: Build
+        id: build
+        run: ./release.sh
+
+      - name: Publish Release
+        uses: https://code.forgejo.org/actions/forgejo-release@v2.13.4
+        with:
+          direction: upload
+          tag: ${{ steps.build.outputs.tag }}
+          title: ${{ steps.build.outputs.title }}
+          sha: ${{ github.sha }}
+          release-dir: dist
+          release-notes-file: notes.md
+          # The development release is replaced, and its tag moved, on every push to main.
+          override: ${{ steps.build.outputs.development }}
+          prerelease: ${{ steps.build.outputs.development }}
