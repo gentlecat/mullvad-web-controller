@@ -55,23 +55,32 @@ func (h *StatusHandler) getStatus(ctx context.Context) (Status, error) {
 
 func parseStatus(output []byte) (Status, error) {
 	var cliStatus struct {
-		State   string `json:"state"`
-		Details struct {
-			Location struct {
-				Hostname string `json:"hostname"`
-				City     string `json:"city"`
-				Country  string `json:"country"`
-				IPv4     string `json:"ipv4"`
-				IPv6     string `json:"ipv6"`
-			} `json:"location"`
-		} `json:"details"`
+		State   string          `json:"state"`
+		Details json.RawMessage `json:"details"`
+	}
+	var details struct {
+		Location struct {
+			Hostname string `json:"hostname"`
+			City     string `json:"city"`
+			Country  string `json:"country"`
+			IPv4     string `json:"ipv4"`
+			IPv6     string `json:"ipv6"`
+		} `json:"location"`
 	}
 
 	if err := json.Unmarshal(output, &cliStatus); err != nil {
 		return Status{}, fmt.Errorf("failed to decode mullvad status: %w", err)
 	}
 
-	location := cliStatus.Details.Location
+	// Details is a string in some states, such as "reconnect" while disconnecting.
+	// Those carry no location.
+	if bytes.HasPrefix(bytes.TrimSpace(cliStatus.Details), []byte("{")) {
+		if err := json.Unmarshal(cliStatus.Details, &details); err != nil {
+			return Status{}, fmt.Errorf("failed to decode mullvad status: %w", err)
+		}
+	}
+
+	location := details.Location
 	status := Status{
 		State:       cliStatus.State,
 		Hostname:    location.Hostname,

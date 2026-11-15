@@ -224,6 +224,12 @@ func TestStatusHandler(t *testing.T) {
 			want:       Status{State: "disconnected", CountryName: "Canada"},
 		},
 		{
+			name:       "disconnecting to reconnect",
+			output:     `{"state":"disconnecting","details":"reconnect"}`,
+			wantStatus: http.StatusOK,
+			want:       Status{State: "disconnecting"},
+		},
+		{
 			name:       "unexpected hostname",
 			output:     `{"state":"connected","details":{"location":{"hostname":"relay"}}}`,
 			wantStatus: http.StatusOK,
