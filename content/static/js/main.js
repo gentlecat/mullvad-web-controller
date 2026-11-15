@@ -263,6 +263,32 @@ function filterLocations() {
     elements.locationList.querySelector('.placeholder').hidden = anyVisible;
 }
 
+// The header gets compact once the list scrolls or a search starts
+function updateCompact() {
+    elements.top.classList.toggle('compact', window.scrollY > 0 || elements.search.value.trim() !== '');
+}
+
+function handleSearchInput() {
+    filterLocations();
+    // Show the matches from the start, right below the header
+    window.scrollTo({top: 0});
+    updateCompact();
+}
+
+// Arrow keys move between the search field and the visible locations
+function handleArrowKeys(event) {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') {
+        return;
+    }
+    const items = [elements.search, ...elements.locationList.querySelectorAll('.location:not([hidden])')];
+    const index = items.indexOf(document.activeElement);
+    const next = index === -1 ? null : items[index + (event.key === 'ArrowDown' ? 1 : -1)];
+    if (next) {
+        event.preventDefault();
+        next.focus();
+    }
+}
+
 // Actions
 
 async function refreshStatus() {
@@ -352,7 +378,7 @@ function handleLocationClick(event) {
 }
 
 function init() {
-    for (const id of ['status', 'notice', 'search']) {
+    for (const id of ['top', 'status', 'notice', 'search']) {
         elements[id] = document.getElementById(id);
     }
     elements.statusFlag = document.getElementById('status-flag');
@@ -368,16 +394,27 @@ function init() {
     elements.locationList.addEventListener('click', handleLocationClick);
     elements.recentList.addEventListener('click', handleLocationClick);
 
-    elements.search.addEventListener('input', filterLocations);
+    elements.search.addEventListener('input', handleSearchInput);
     elements.search.addEventListener('keydown', event => {
         if (event.key === 'Enter') {
             // Pick the first match, so that typing a city and pressing Enter switches to it
             elements.locationList.querySelector('.location:not([hidden])')?.click();
         } else if (event.key === 'Escape') {
-            elements.search.value = '';
-            filterLocations();
+            if (elements.search.value) {
+                elements.search.value = '';
+                handleSearchInput();
+            } else {
+                elements.search.blur();
+            }
         }
     });
+    elements.search.addEventListener('keydown', handleArrowKeys);
+    elements.locationList.addEventListener('keydown', handleArrowKeys);
+
+    window.addEventListener('scroll', updateCompact, {passive: true});
+    new ResizeObserver(() => {
+        document.documentElement.style.setProperty('--top-height', `${elements.top.offsetHeight}px`);
+    }).observe(elements.top);
 
     document.addEventListener('keydown', event => {
         if (event.key === '/' && document.activeElement !== elements.search && !elements.search.disabled) {

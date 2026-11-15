@@ -5,6 +5,8 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
+  <meta name="theme-color" content="#f2f1ee" media="(prefers-color-scheme: light)"/>
+  <meta name="theme-color" content="#1a1b1d" media="(prefers-color-scheme: dark)"/>
   <link rel="stylesheet" href="/static/styles/main.css"/>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌏</text></svg>">
   <script src="/static/js/main.js" defer></script>
@@ -16,33 +18,38 @@
 
 <main class="app">
 
-  <section class="status" id="status" data-state="loading" aria-live="polite" aria-atomic="true">
-    <span class="status-flag" id="status-flag" aria-hidden="true"></span>
-    <div class="status-body">
-      <p class="status-state" id="status-state">Checking the tunnel</p>
-      <p class="status-location" id="status-location"></p>
-      <p class="status-details" id="status-details"></p>
+  <header class="top" id="top">
+
+    <section class="status" id="status" data-state="loading" aria-live="polite" aria-atomic="true">
+      <span class="status-flag" id="status-flag" aria-hidden="true"></span>
+      <div class="status-body">
+        <p class="status-state" id="status-state">Checking the tunnel</p>
+        <p class="status-location" id="status-location"></p>
+        <p class="status-details" id="status-details"></p>
+      </div>
+    </section>
+
+    <div class="notice" id="notice" role="alert" hidden>
+      <span id="notice-text"></span>
+      <button type="button" class="notice-action" id="notice-action" hidden>Try again</button>
     </div>
-  </section>
 
-  <div class="notice" id="notice" role="alert" hidden>
-    <span id="notice-text"></span>
-    <button type="button" class="notice-action" id="notice-action" hidden>Try again</button>
-  </div>
+    <section class="recent" id="recent-section" aria-labelledby="recent-heading" hidden>
+      <h2 class="recent-label" id="recent-heading">Recent</h2>
+      <div class="recent-list" id="recent-list"></div>
+    </section>
 
-  <section class="recent" id="recent-section" aria-labelledby="recent-heading" hidden>
-    <h2 class="recent-label" id="recent-heading">Recent</h2>
-    <div class="recent-list" id="recent-list"></div>
-  </section>
-
-  <section class="locations" aria-labelledby="locations-heading">
-    <h2 class="visually-hidden" id="locations-heading">Locations</h2>
     <div class="search">
       <label class="visually-hidden" for="search">Search locations</label>
       <input type="search" id="search" placeholder="Search countries and cities" autocomplete="off"
              spellcheck="false" enterkeyhint="go" aria-controls="location-list" disabled/>
       <kbd class="search-hint" aria-hidden="true">/</kbd>
     </div>
+
+  </header>
+
+  <section class="locations" aria-labelledby="locations-heading">
+    <h2 class="visually-hidden" id="locations-heading">Locations</h2>
     <div class="location-list" id="location-list">
       <p class="placeholder">Loading locations</p>
     </div>
